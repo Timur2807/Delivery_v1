@@ -1,3 +1,7 @@
+"""
+В этом модуле представлена джанго команда, которая запрашивает данные из БД.
+"""
+
 from django.core.management import BaseCommand
 from django.db.models import Count, Avg, F, DurationField
 from django.db.models.functions import ExtractHour, ExtractMinute

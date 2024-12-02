@@ -1,3 +1,7 @@
+"""
+В этом модуле представлена джанго команда, которая запрашивает данные из БД.
+"""
+
 import datetime
 
 from django.core.management import BaseCommand

@@ -1,3 +1,7 @@
+"""
+В этом модуле представлен классы серализаторы DeliverySerializerSet для ModelViewSet и DeliverySerializer для APIView
+"""
+
 from rest_framework import serializers
 from .models import Delivery
 

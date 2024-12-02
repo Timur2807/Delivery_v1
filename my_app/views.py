@@ -1,3 +1,7 @@
+"""
+В этом модуле реализованы методы и клаасы по обработке запросов GET, POST, DELETE, PUT, UPDATE.
+"""
+
 import dadata
 from geopy.distance import great_circle
 from rest_framework.filters import SearchFilter

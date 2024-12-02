@@ -1,6 +1,11 @@
+"""
+В этом модуле представлены модели Delivery, DeliveryStatusCurrent, DeliveryStatusHistory
+"""
+
 from django.db import models
 
 class Delivery(models.Model):
+    """Класс представляет собой модель заказов. """
     PACKAGE = [
         (None, 'Выберите тип пакета'),
         ('letter', 'Письмо'),
@@ -8,12 +13,12 @@ class Delivery(models.Model):
         ('bulky cargo', 'Крупногабаритный груз'),
     ]
     load_data = models.DateTimeField(auto_now_add=True)
-    customer_name = models.CharField(max_length=150)
-    delivery_city = models.CharField(max_length=150)
+    customer_name = models.CharField(max_length=150, db_index=True)
+    delivery_city = models.CharField(max_length=150, db_index=True)
     delivery_address = models.CharField(max_length=250)
     delivery_date = models.DateField(auto_now_add=True)
     delivery_time = models.TimeField(auto_now_add=True)
-    package_type = models.CharField(choices=PACKAGE)
+    package_type = models.CharField(choices=PACKAGE, default=None)
     comment = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -25,6 +30,7 @@ class Delivery(models.Model):
         ordering = ['-load_data']
 
 class DeliveryStatusCurrent(models.Model):
+    """Класс представляет собой модель статус заказов."""
     PACKAGE_STATUS = [
         (None, 'Выберите статус'),
         ('New', 'Новая'),
@@ -36,7 +42,7 @@ class DeliveryStatusCurrent(models.Model):
 
     status_name = models.CharField(choices=PACKAGE_STATUS, blank=True, null=True)
     load_data = models.DateTimeField(auto_now_add=True)
-    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE, blank=True, null=True)
+    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE, related_name='status_history', blank=True, null=True)
 
     def __str__(self):
         return f'{self.id}, {self.status_name} - {self.load_data}'
@@ -47,6 +53,7 @@ class DeliveryStatusCurrent(models.Model):
         ordering = ['-load_data']
 
 class DeliveryStatusHistory(models.Model):
+    """Класс представляет собой модель История изменения статусов заказа."""
     PACKAGE_STATUS = [
         (None, 'Выберите статус'),
         ('New', 'Новая'),

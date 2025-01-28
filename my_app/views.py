@@ -3,12 +3,13 @@
 """
 
 import dadata
+import logging
 from geopy.distance import great_circle
-from rest_framework.filters import SearchFilter
-
+from django.core.cache import cache
 from delivery.settings import DADATA_API_KEY, DADATA_SECRET_KEY
 from django.forms import model_to_dict
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -20,6 +21,7 @@ from rest_framework.viewsets import ModelViewSet
 from .serializers import DeliverySerializer, DeliveryStatusSerializer, DeliverySerializerSet
 from .models import DeliveryStatusCurrent, DeliveryStatusHistory
 
+logger = logging.getLogger(__name__)
 
 class DeliveryAPIView(APIView):
     """
@@ -34,8 +36,17 @@ class DeliveryAPIView(APIView):
         :param request:
         :return: все объекты из БД
         """
-        order = Delivery.objects.all().values()
-        return Response({'order': list(order)})
+        orders = cache.get('all_orders')
+        if not orders:
+            orders = Delivery.objects.all().values()
+            cache.set('all_orders', list(orders), timeout=60)
+            logger.info("Fetching orders from DB")
+        else:
+            logger.info("Fetching orders from cache")
+
+        paginator = PageNumberPagination()
+        paginated_orders = paginator.paginate_queryset(orders, request)
+        return paginator.get_paginated_response({'orders': paginated_orders})
 
     def post(self, request):
         """
@@ -283,3 +294,14 @@ class DeliveryModelViewSet(ModelViewSet):
         'package_type',
         'customer_name'
     ]
+
+class CacheCheckAPIView(APIView):
+    """
+    Этот класс проверяет на наличие записи d кэше.
+    """
+    def get(self, request):
+        cached_data = cache.get('all_orders')
+        if cached_data:
+            return Response({'status': 'Data found in cache', 'data': cached_data})
+        else:
+            return Response({'status': 'No data in cache'})
